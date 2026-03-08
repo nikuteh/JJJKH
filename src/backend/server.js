@@ -6,6 +6,16 @@ const path = require('path');
 const app = express();
 const PORT = 3000;
 
+// This builds an absolute path starting from src/backend/
+const dbPath = path.join(__dirname, '..', 'db', 'music_data.db');
+const db = new sqlite3.Database(dbPath, (err) => {
+    if (err) {
+        console.error("Failed to connect to the database:", err.message);
+    } else {
+        console.log("Connected to music_data.db");
+    }
+});
+
 // Resolve paths
 const frontendPath = path.join(__dirname, '..', 'frontend');
 
@@ -47,8 +57,6 @@ app.listen(PORT, () => {
     console.log(`✅ Rendering Handlebars at http://localhost:${PORT}`);
 });
 
-const dbChords = new sqlite3.Database('./chords.db');
-const dbSentiment = new sqlite3.Database('./sentiment.db');
 
 
 /* ****************************** */
