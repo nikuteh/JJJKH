@@ -1,3 +1,4 @@
+const sqlite3 = require('sqlite3').verbose();
 const express = require('express');
 const { engine } = require('express-handlebars'); // New import
 const path = require('path');
