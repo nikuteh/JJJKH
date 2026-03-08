@@ -491,6 +491,33 @@ button { font-family: inherit; cursor: pointer; }
   margin-bottom: 20px;
 }
 
+.rec-pills {
+    display: flex;
+    flex-direction: column; /* Stack them vertically */
+    gap: 8px;               /* Space between the bars */
+    width: 100%;
+    max-width: 400px;       /* Keeps the list from getting too wide */
+    margin: 15px auto;      /* Centers the list */
+}
+
+/* Individual song bars */
+.rec-pill {
+    background: #2a2a2a;    /* Slightly lighter dark grey */
+    color: #e0e0e0;         /* Light grey text for high contrast */
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    text-align: center;
+    border: 1px solid #444;
+    transition: all 0.2s ease;
+}
+
+/* Optional: Add a hover effect since they are "pills" */
+.rec-pill:hover {
+    background: #333;
+    border-color: #1DB954; /* Spotify green highlight */
+}
+
 /* ─────────────────────────────────────────────
    DROP ZONE
 ───────────────────────────────────────────── */

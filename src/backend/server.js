@@ -56,26 +56,62 @@ function getRandomSongFromDB(callback) {
     LIMIT 1
   `;
 
-  db.get(sql, [], callback);
+  db.get(sql, [], (err, song) => {
+    if (err || !song) return callback(err, null);
+
+    // 2. Get 3 similar songs based on the sentiment we just calculated
+    const recSql = `
+      SELECT track AS title, artist, spotify_id AS spotifyId
+      FROM sentiment
+      WHERE spotify_id != ? 
+      AND (
+        CASE
+            WHEN valence_tags > 4.26 AND arousal_tags > 3.69 THEN 'Upbeat'
+            WHEN valence_tags < 4.26 AND arousal_tags > 3.69 THEN 'Intense'
+            WHEN valence_tags < 4.26 AND arousal_tags < 3.69 THEN 'Somber'
+            WHEN valence_tags > 4.26 AND arousal_tags < 3.69 THEN 'Peaceful'
+            ELSE 'Neutral'
+        END
+      ) = ?
+      ORDER BY RANDOM()
+      LIMIT 3
+    `;
+
+    db.all(recSql, [song.spotifyId, song.sentiment], (recErr, recs) => {
+      if (recErr) {
+        song.recommendations = [];
+      } else {
+        song.recommendations = recs;
+      }
+      
+      // 3. Return the song object now containing its own recommendations
+      callback(null, song);
+    });
+  });
 }
 // --- THE MAIN ROUTE ---
 //render random song 
 app.get('/', (req, res) => {
   getRandomSongFromDB((err, row) => {
-    if (err) {
-      console.error('DB error:', err.message);
+    if (err || !row) {
+      console.error('DB error:', err?.message);
       return res.status(500).send('Could not load page');
     }
 
-    if (!row) {
-      return res.status(404).send('No songs found');
-    }
-
+    // 1. Store the whole object (including recommendations) in the session
     req.session.currentLessonSong = row;
 
-    res.render('index', {
-      SongID: row.spotifyId,
-      layout: false
+    // 2. Explicitly save the session before rendering the page
+    req.session.save((err) => {
+      if (err) {
+        console.error("Session save error:", err);
+        return res.status(500).send("Session error");
+      }
+      // 3. Now render. The frontend can safely fetch /api/get-lesson now.
+      res.render('index', {
+        SongID: row.spotifyId,
+        layout: false
+      });
     });
   });
 });
@@ -131,7 +167,11 @@ app.get('/api/get-lesson', (req, res) => {
         title: row.title,
         artist: row.artist,
         spotifyId: row.spotifyId,
-        sections: randomSection
+        sections: randomSection,
+        recommendations: {
+          sentiment: row.sentiment,
+          songs: row.recommendations
+        }   
     });
 });
 

@@ -25,6 +25,18 @@ const state = {
 // RENDERERING
 // ─────────────────────────────────────────────
 
+document.addEventListener("DOMContentLoaded", async () => {
+    try {
+        const response = await fetch('/api/get-lesson');
+        if (!response.ok) throw new Error("Failed to fetch");
+        
+        const songData = await response.json();
+        openLesson(songData); // This function handles the Iframe and UI
+    } catch (error) {
+        console.error("Initialization Error:", error);
+    }
+});
+
 function openLesson(song) {
   state.currentSong = song;
   const sectionKeys = Object.keys(song.sections);
@@ -179,6 +191,18 @@ function renderFeedback() {
   fb.className = `feedback ${ls.status} anim-fadein`;
 
   if (ls.status === "correct") {
+      // let recHtml = `
+      //   <div class="recommendations">
+      //     <p>Like this song? Explore other <strong>${recs.sentiment}</strong> songs:</p>
+      //     <div class="rec-list">
+      //       ${recs.songs.map(s => `
+      //         <a href="http://googleusercontent.com/open.spotify.com/11{s.spotifyId}" target="_blank" class="rec-item">
+      //           ${s.title} - ${s.artist}
+      //         </a>
+      //       `).join('')}
+      //     </div>
+      //   </div>`;
+
     fb.innerHTML = `
       <div class="feedback-icon">🌿</div>
       <div>
@@ -199,9 +223,16 @@ function renderButton() {
   const key = state.currentTab;
   const ls  = state.lessonStates[key];
   const btn = document.getElementById("check-btn");
+  const btnContainer = btn.parentElement;
 
   btn.className = "check-btn";
   btn.onclick = null;
+
+  btn.style.display = "inline-block";
+  
+  // Clear any existing recommendation area from a previous win
+  const oldRecs = document.getElementById("win-recommendations");
+  if (oldRecs) oldRecs.remove();
 
   if (ls.status === "incorrect") {
     btn.textContent = "Try again";
@@ -209,10 +240,21 @@ function renderButton() {
     btn.classList.add("try-again");
     btn.onclick = tryAgain;
   } else if (ls.status === "correct") {
-    btn.textContent = "Continue →";
-    btn.disabled = false;
-    btn.classList.add("continue");
-    btn.onclick = goNextSection;
+btn.style.display = "none";
+    // 2. Create the recommendation UI in its place
+    const recs = state.currentSong.recommendations;
+    const recArea = document.createElement("div");
+    recArea.id = "win-recommendations";
+    recArea.className = "rec-area anim-fadein";
+
+    recArea.innerHTML = `
+      <p class="rec-prompt">Nice work! Explore more <strong>${recs.sentiment}</strong> vibes:</p>
+      <div class="rec-pills">
+        ${recs.songs.map(s => `<span class="rec-pill">${s.title}</span>`).join('')}
+      </div>
+    `;
+
+    btnContainer.appendChild(recArea);
   } else {
     btn.textContent = "Check answer";
     btn.disabled = ls.zone.length === 0;
