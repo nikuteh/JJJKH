@@ -1,8 +1,55 @@
-const sqlite3 = require('sqlite3').verbose();
+const express = require('express');
+const { engine } = require('express-handlebars'); // New import
+const path = require('path');
 
-const dbChords = new sqlite3.Database('./chord.db');
+const app = express();
+const PORT = 3000;
 
-const dbSentiment = new sqlite3.Database('./sentiment.db');
+// Resolve paths
+const frontendPath = path.join(__dirname, '..', 'frontend');
+
+// --- HANDLEBARS SETUP ---
+app.engine('hbs', engine({ extname: '.hbs' }));
+app.set('view engine', 'hbs');
+app.set('views', frontendPath); // Tell Express where index.hbs lives
+
+// Serve CSS and JS
+app.use(express.static(frontendPath));
+
+// Mock API for the chords logic
+app.get('/api/get-lesson', (req, res) => {
+    res.json({
+        title: "Let Her Go",
+        artist: "Passenger",
+        sections: {
+            verse: {
+                label: "Verse",
+                emoji: "🎵",
+                sentiment: "Quiet",
+                correctOrder: ["Am", "F", "C", "G"],
+                bank: ["Am", "F", "C", "G", "Em"],
+            }
+        }
+    });
+});
+
+// --- THE MAIN ROUTE ---
+app.get('/', (req, res) => {
+    // 'res.render' looks for index.hbs and replaces the {{ }} variables
+    res.render('index', { 
+        SongID: '0VjIj97vR3Ymc6OEdb396v', // Real Spotify ID for Testing
+        layout: false // Tells it not to look for a 'main.hbs' wrapper
+    });
+});
+
+app.listen(PORT, () => {
+    console.log(`✅ Rendering Handlebars at http://localhost:${PORT}`);
+});
+
+
+/* ****************************** */
+
+
 // /**
 //  * data.js — Chordle song & chord data
 //  *
