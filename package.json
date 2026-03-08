@@ -1,9 +1,10 @@
 {
   "name": "jjjkh",
   "version": "1.0.0",
-  "description": "",
+  "description": "Prerequisite: \r - Node LTS (24)\r - npm LTS (11)",
   "main": "index.js",
   "scripts": {
+    "start": "npm install && node src/backend/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -22,6 +23,6 @@
     "express": "^5.2.1",
     "express-handlebars": "^8.0.6",
     "express-session": "^1.19.0",
-    "sqlite3": "^5.1.7"
+    "sqlite3": "^5.0.2"
   }
 }
