@@ -37,9 +37,15 @@ app.use(express.static(frontendPath));
 //helper function/middleware for random picking (so main route and /api/get-lesson don't pick different songs)
 function getRandomSongFromDB(callback) {
   const sql = `
-    SELECT track AS title, artist, spotify_id AS spotifyId
-    FROM sentiment
-    WHERE spotify_id IS NOT NULL AND spotify_id != ''
+    SELECT
+      c.chords, 
+      c.spotify_song_id AS spotifyId, 
+      s.track AS title, 
+      s.artist, 
+      s.valence_tags AS sentiment
+    FROM chords c
+    JOIN sentiment s ON c.spotify_song_id = s.spotify_id
+    WHERE c.chords IS NOT NULL
     ORDER BY RANDOM()
     LIMIT 1
   `;
@@ -75,19 +81,38 @@ app.get('/api/get-lesson', (req, res) => {
     if (!row) {
         return res.status(404).json({ error: 'No lesson song selected yet' });
     }
+
+    // parse the sections from the "chords" column
+    const sectionRegex = /<([^>]+)>\s*([^<]+)/g;
+    const sections = {};
+    let match;
+
+    while ((match = sectionRegex.exec(row.chords)) !== null) {
+        const label = match[1]; // e.g., "verse_1"
+        const chordList = match[2].trim().split(/\s+/);
+        
+        // generate the bank (Unique chords, distractor items)
+        const bank = [...chordList];
+
+        // add 3 distractors that aren't already in the song
+        const distractors = ["G", "D", "F", "Em", "Bb", "E", "Am", "C"]
+        .filter(c => !bank.includes(c))
+        .slice(0, 3);
+
+        sections[label] = {
+            label: label.replace('_', ' ').toUpperCase(),
+            emoji: label.includes('verse') ? "🎵" : "🎶",
+            sentiment: row.sentiment || "Neutral",
+            correctOrder: chordList,
+            bank: bank
+        };
+    }
+
     res.json({
         title: row.title,
         artist: row.artist,
         spotifyId: row.spotifyId,
-        sections: {
-            verse: {
-                label: "Verse",
-                emoji: "🎵",
-                sentiment: "Quiet",
-                correctOrder: ["Am", "F", "C", "G"],
-                bank: ["Am", "F", "C", "G", "Em"],
-            }
-        }
+        sections: sections
     });
 });
 
