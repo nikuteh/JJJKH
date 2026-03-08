@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chordle 🎼</title>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800;900&family=DM+Serif+Text&display=swap" rel="stylesheet" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- Grain texture overlay -->
+  <svg id="grain" xmlns="http://www.w3.org/2000/svg">
+    <filter id="grainFilter">
+      <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+    </filter>
+    <rect width="100%" height="100%" filter="url(#grainFilter)"/>
+  </svg>
+
+  <!-- App shell -->
+  <div id="app">
+
+    <!-- Top bar -->
+    <header id="topbar">
+      <div class="topbar-inner">
+        <div class="logo">🎼 Chordle</div>
+        <div class="streak-badge">🔥 7 day streak</div>
+      </div>
+    </header>
+
+    <!-- Pages (only one visible at a time) -->
+    <main id="main-content">
+
+      <!-- HOME PAGE -->
+      <section id="page-home" class="page active">
+        <div class="page-inner">
+
+          <!-- Hero -->
+          <div class="hero-card">
+            <div class="vinyl-rings hero-vinyl" data-size="120"></div>
+            <div class="vinyl-rings hero-vinyl2" data-size="160"></div>
+            <div class="tag-pill">🎵 CHORD THEORY</div>
+            <h1>Learn the language<br/>of music.</h1>
+            <p class="hero-sub">Identify chord progressions by ear. Understand why songs feel the way they do.</p>
+            <div class="mood-tags">
+              <span class="mood-tag">😢 Sad</span>
+              <span class="mood-tag">🌤 Hopeful</span>
+              <span class="mood-tag">🔥 Tense</span>
+              <span class="mood-tag">☀️ Joyful</span>
+            </div>
+          </div>
+
+          <!-- Stats -->
+          <div class="stats-strip">
+            <div class="stat-card"><div class="stat-val">🔥 7</div><div class="stat-lbl">Day streak</div></div>
+            <div class="stat-card"><div class="stat-val">🎵 3</div><div class="stat-lbl">Songs done</div></div>
+            <div class="stat-card"><div class="stat-val">⭐ 240</div><div class="stat-lbl">Total XP</div></div>
+          </div>
+
+          <!-- Library -->
+          <h2 class="section-title">Song Library</h2>
+          <div id="song-list" class="song-list">
+            <!-- Song cards injected by JS -->
+          </div>
+
+          <!-- Placeholder -->
+          <div class="coming-soon">
+            <div class="coming-soon-icon">🎸</div>
+            <div class="coming-soon-title">More songs coming soon</div>
+            <div class="coming-soon-sub">Powered by Spotify · your dataset</div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- LESSON PAGE -->
+      <section id="page-lesson" class="page">
+        <div class="page-inner">
+          <button id="back-btn" class="back-btn">← Back to library</button>
+
+          <!-- Song header -->
+          <div class="lesson-header card" id="lesson-header">
+            <div class="vinyl-rings lesson-vinyl"></div>
+            <div id="lesson-title" class="lesson-title"></div>
+            <div id="lesson-meta" class="lesson-meta"></div>
+            <!-- Audio player -->
+            <div class="audio-player">
+              <button class="play-btn" id="play-btn">▶</button>
+              <div class="audio-track">
+                <div class="track-bar"><div class="track-fill" id="track-fill"></div></div>
+                <div class="track-times"><span>1:24</span><span>3:42</span></div>
+              </div>
+              <div class="waveform" id="waveform"></div>
+            </div>
+          </div>
+
+          <!-- Section tabs -->
+          <div class="tabs" id="section-tabs">
+            <!-- Injected by JS -->
+          </div>
+
+          <!-- Challenge card -->
+          <div class="card challenge-card">
+            <div class="label-sm">Challenge</div>
+            <div class="challenge-title" id="challenge-title"></div>
+            <div class="sentiment-pill" id="sentiment-pill"></div>
+
+            <div class="label-sm" style="margin-top:18px;">Your answer</div>
+            <div class="drop-zone" id="drop-zone">
+              <div class="drop-placeholder" id="drop-placeholder">Tap chords to place them here</div>
+            </div>
+            <div class="remove-hint" id="remove-hint" style="display:none;">Tap a chord to remove it</div>
+
+            <div class="word-bank" id="word-bank"></div>
+
+            <div class="feedback" id="feedback" style="display:none;"></div>
+
+            <button class="check-btn" id="check-btn" disabled>Check answer</button>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- PROGRESS PAGE -->
+      <section id="page-progress" class="page">
+        <div class="page-inner">
+          <h2 class="section-title">Your Progress</h2>
+          <div id="progress-list" class="progress-list">
+            <!-- Injected by JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- SETTINGS PAGE -->
+      <section id="page-settings" class="page">
+        <div class="page-inner">
+          <h2 class="section-title">Settings</h2>
+          <p class="coming-soon-sub" style="margin-top:12px;">Settings coming soon ☕</p>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Bottom nav -->
+    <nav id="bottom-nav">
+      <button class="nav-btn active" data-page="home"><span class="nav-icon">📚</span><span class="nav-lbl">Library</span></button>
+      <button class="nav-btn" data-page="progress"><span class="nav-icon">📈</span><span class="nav-lbl">Progress</span></button>
+      <button class="nav-btn" data-page="settings"><span class="nav-icon">⚙️</span><span class="nav-lbl">Settings</span></button>
+    </nav>
+
+  </div><!-- /#app -->
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
