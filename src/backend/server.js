@@ -1,7 +1,6 @@
 const sqlite3 = require('sqlite3').verbose();
 
-const dbChords = new sqlite3.Database('./chord.db');
-
+const dbChords = new sqlite3.Database('./chords.db');
 const dbSentiment = new sqlite3.Database('./sentiment.db');
 // /**
 //  * data.js — Chordle song & chord data
