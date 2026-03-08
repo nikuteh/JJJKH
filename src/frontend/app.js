@@ -11,7 +11,7 @@
  */
 
 // ─────────────────────────────────────────────
-// 1. STATE
+// STATE
 // ─────────────────────────────────────────────
 
 const state = {
@@ -22,58 +22,8 @@ const state = {
 };
 
 // ─────────────────────────────────────────────
-// 2. ROUTER
+// RENDERERING
 // ─────────────────────────────────────────────
-
-function navigateTo(page) {
-  // Hide all pages
-  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
-  // Show target page
-  document.getElementById(`page-${page}`).classList.add("active");
-
-  // Update nav buttons (lesson page hides nav entirely)
-  const nav = document.getElementById("bottom-nav");
-  nav.style.display = page === "lesson" ? "none" : "flex";
-
-  document.querySelectorAll(".nav-btn").forEach(btn => {
-    btn.classList.toggle("active", btn.dataset.page === page);
-  });
-
-  state.currentPage = page;
-
-  // Render page content on navigation
-  if (page === "home")     renderHome();
-  if (page === "progress") renderProgress();
-}
-
-// ─────────────────────────────────────────────
-// 3. PAGE RENDERERS
-// ─────────────────────────────────────────────
-
-function renderHome() {
-  const list = document.getElementById("song-list");
-  list.innerHTML = "";
-  SONGS.forEach(song => {
-    list.appendChild(makeSongCard(song));
-  });
-}
-
-function renderProgress() {
-  const el = document.getElementById("progress-list");
-  el.innerHTML = "";
-  PROGRESS_DATA.forEach(({ mood, songs, pct }) => {
-    el.innerHTML += `
-      <div class="progress-row-card">
-        <div class="progress-row-top">
-          <div class="progress-row-label">${mood}</div>
-          <div class="progress-row-meta">${songs} · ${pct}%</div>
-        </div>
-        <div class="progress-bar-track">
-          <div class="progress-bar-fill" style="width:${pct}%"></div>
-        </div>
-      </div>`;
-  });
-}
 
 function openLesson(song) {
   state.currentSong = song;
@@ -105,28 +55,12 @@ function openLesson(song) {
   }
   drawVinyl(vinyl, 110);
 
-  // Waveform bars
-  const wf = document.getElementById("waveform");
-  wf.innerHTML = "";
-  [3,5,8,6,4,7,5,3,6,4,8,5,3,6,4].forEach(h => {
-    const bar = document.createElement("div");
-    bar.className = "waveform-bar";
-    bar.style.height = `${h * 2}px`;
-    wf.appendChild(bar);
-  });
-
   // Tabs
   renderTabs(sectionKeys);
 
   // Render first section
   renderSection();
-
-  navigateTo("lesson");
 }
-
-// ─────────────────────────────────────────────
-// 4. LESSON LOGIC
-// ─────────────────────────────────────────────
 
 function renderTabs(sectionKeys) {
   const tabsEl = document.getElementById("section-tabs");
@@ -332,13 +266,13 @@ function goNextSection() {
 }
 
 // ─────────────────────────────────────────────
-// 5. UI HELPERS
+// UI HELPERS
 // ─────────────────────────────────────────────
 
 function makeChip(chord, onClick) {
-  const c    = getChordColor(chord);
+  const c = typeof getChordColor === 'function' ? getChordColor(chord) : { bg: '#fff', text: '#000', border: '#ccc', shadow: '#999' };
   const chip = document.createElement("button");
-  chip.className   = "chip";
+  chip.className = "chip";
   chip.textContent = chord;
   chip.style.cssText = `
     background: ${c.bg};
@@ -360,34 +294,6 @@ function makeChip(chord, onClick) {
   });
   chip.addEventListener("click", onClick);
   return chip;
-}
-
-function makeSongCard(song) {
-  const sectionKeys = Object.keys(song.sections);
-  const done  = Object.values(song.completed).filter(Boolean).length;
-  const total = sectionKeys.length;
-  const pct   = Math.round((done / total) * 100);
-
-  const card = document.createElement("button");
-  card.className = "song-card";
-  card.innerHTML = `
-    <div class="song-art">${song.moodEmoji}</div>
-    <div class="song-info">
-      <div class="song-top">
-        <div class="song-title">${song.title}</div>
-        <div class="song-mood">${song.mood}</div>
-      </div>
-      <div class="song-artist">${song.artist} · ${song.key}</div>
-      <div class="song-progress-bar-wrap">
-        <div class="song-progress-track">
-          <div class="song-progress-fill" style="width:${pct}%"></div>
-        </div>
-        <div class="song-progress-label">${done}/${total} sections</div>
-      </div>
-    </div>`;
-
-  card.addEventListener("click", () => openLesson(song));
-  return card;
 }
 
 /** Draw vinyl ring SVG into an existing SVG element */
@@ -412,44 +318,26 @@ function shuffle(arr) {
 }
 
 // ─────────────────────────────────────────────
-// 6. INIT
+// INIT TODO: FIX with backend files
 // ─────────────────────────────────────────────
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    // 1. Ask the backend for the lesson data
+    const response = await fetch('/api/get-lesson');
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
 
-  // Nav buttons
-  document.querySelectorAll(".nav-btn").forEach(btn => {
-    btn.addEventListener("click", () => navigateTo(btn.dataset.page));
-  });
+    // 2. Parse the database response into a JavaScript object
+    const songData = await response.json();
 
-  // Back button
-  document.getElementById("back-btn").addEventListener("click", () => {
-    navigateTo("home");
-  });
+    // 3. Kick off the lesson with the dynamic data
+    openLesson(songData);
 
-  // Play button (demo toggle)
-  document.getElementById("play-btn").addEventListener("click", function () {
-    const playing = this.textContent === "⏸";
-    this.textContent = playing ? "▶" : "⏸";
-    document.getElementById("track-fill").style.width = playing ? "35%" : "55%";
-  });
-
-  // Hero vinyl rings
-  document.querySelectorAll(".vinyl-rings[data-size]").forEach(el => {
-    drawVinyl(el, parseInt(el.dataset.size));
-  });
-
-  // Draw hero vinyl that don't have data-size (lesson-vinyl drawn dynamically)
-  document.querySelectorAll(".hero-vinyl, .hero-vinyl2").forEach(el => {
-    const size = el.classList.contains("hero-vinyl2") ? 160 : 120;
-    // Convert div to inline SVG
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.className.baseVal = el.className.baseVal || el.className;
-    drawVinyl(svg, size);
-    el.replaceWith(svg);
-  });
-
-  // Kick off
-  renderHome();
-  navigateTo("home");
+  } catch (error) {
+    console.error("Failed to load lesson data from backend:", error);
+    document.getElementById("challenge-title").textContent = "Error loading lesson data. Please try again later.";
+  }
 });
