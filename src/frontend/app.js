@@ -43,7 +43,7 @@ function openLesson(song) {
   // Populate static lesson header
   document.getElementById("lesson-title").textContent = song.title;
   document.getElementById("lesson-meta").textContent  =
-    `${song.artist} · ${song.key} · ${song.bpm} BPM`;
+    `${song.artist}`;
 
   // Vinyl decorations
   const header = document.getElementById("lesson-header");
@@ -315,6 +315,18 @@ function shuffle(arr) {
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
   return arr;
+}
+// FRONTEND GET REQUEST FOR RANDOMIZATION
+async function loadLesson() {
+  const song = await getRandomSong();
+
+  document.getElementById("lesson-title").textContent = song.title;
+  document.getElementById("lesson-meta").textContent = song.artist;
+
+  if (song.spotifyId) {
+    document.getElementById("spotify-embed-container").innerHTML =
+      createSpotifyEmbed(song.spotifyId);
+  }
 }
 
 // ─────────────────────────────────────────────

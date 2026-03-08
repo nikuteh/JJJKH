@@ -2,9 +2,16 @@ const sqlite3 = require('sqlite3').verbose();
 const express = require('express');
 const { engine } = require('express-handlebars'); // New import
 const path = require('path');
+const session = require('express-session');
 
 const app = express();
 const PORT = 3000;
+
+app.use(session({
+  secret: 'your-secret-key',
+  resave: false,
+  saveUninitialized: true
+}));
 
 // This builds an absolute path starting from src/backend/
 const dbPath = path.join(__dirname, '..', 'db', 'music_data.db');
@@ -27,11 +34,51 @@ app.set('views', frontendPath); // Tell Express where index.hbs lives
 // Serve CSS and JS
 app.use(express.static(frontendPath));
 
-// Mock API for the chords logic
+//helper function/middleware for random picking (so main route and /api/get-lesson don't pick different songs)
+function getRandomSongFromDB(callback) {
+  const sql = `
+    SELECT track AS title, artist, spotify_id AS spotifyId
+    FROM sentiment
+    WHERE spotify_id IS NOT NULL AND spotify_id != ''
+    ORDER BY RANDOM()
+    LIMIT 1
+  `;
+
+  db.get(sql, [], callback);
+}
+// --- THE MAIN ROUTE ---
+//render random song 
+app.get('/', (req, res) => {
+  getRandomSongFromDB((err, row) => {
+    if (err) {
+      console.error('DB error:', err.message);
+      return res.status(500).send('Could not load page');
+    }
+
+    if (!row) {
+      return res.status(404).send('No songs found');
+    }
+
+    req.session.currentLessonSong = row;
+
+    res.render('index', {
+      SongID: row.spotifyId,
+      layout: false
+    });
+  });
+});
+
+// get random song
 app.get('/api/get-lesson', (req, res) => {
+    const row = req.session.currentLessonSong;
+
+    if (!row) {
+        return res.status(404).json({ error: 'No lesson song selected yet' });
+    }
     res.json({
-        title: "Let Her Go",
-        artist: "Passenger",
+        title: row.title,
+        artist: row.artist,
+        spotifyId: row.spotifyId,
         sections: {
             verse: {
                 label: "Verse",
@@ -44,14 +91,6 @@ app.get('/api/get-lesson', (req, res) => {
     });
 });
 
-// --- THE MAIN ROUTE ---
-app.get('/', (req, res) => {
-    // 'res.render' looks for index.hbs and replaces the {{ }} variables
-    res.render('index', { 
-        SongID: '0VjIj97vR3Ymc6OEdb396v', // Real Spotify ID for Testing
-        layout: false // Tells it not to look for a 'main.hbs' wrapper
-    });
-});
 
 app.listen(PORT, () => {
     console.log(`✅ Rendering Handlebars at http://localhost:${PORT}`);
