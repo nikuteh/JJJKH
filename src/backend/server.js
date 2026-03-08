@@ -92,9 +92,12 @@ app.get('/api/get-lesson', (req, res) => {
         const chordList = match[2].trim().split(/\s+/);
         
         // generate the bank (Unique chords, distractor items)
-        const unique = [...new Set(chordList)];
-        const distractors = ["Am", "G", "C", "D", "F", "Em", "Bb"].filter(c => !unique.includes(c));
-        const bank = [...unique, ...distractors.slice(0, 3)];
+        const bank = [...chordList];
+
+        // add 3 distractors that aren't already in the song
+        const distractors = ["G", "D", "F", "Em", "Bb", "E", "Am", "C"]
+        .filter(c => !bank.includes(c))
+        .slice(0, 3);
 
         sections[label] = {
             label: label.replace('_', ' ').toUpperCase(),
