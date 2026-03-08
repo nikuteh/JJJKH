@@ -250,7 +250,7 @@ btn.style.display = "none";
     recArea.innerHTML = `
       <p class="rec-prompt">Nice work! Explore more <strong>${recs.sentiment}</strong> vibes:</p>
       <div class="rec-pills">
-        ${recs.songs.map(s => `<span class="rec-pill">${s.title}</span>`).join('')}
+        ${recs.songs.map(s => `<span class="rec-pill"><strong>${s.title}</strong> — ${s.artist}</span>`).join('')}
       </div>
     `;
 
