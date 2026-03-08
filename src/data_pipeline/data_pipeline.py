@@ -15,10 +15,11 @@ path = kagglehub.dataset_download("thedevastator/muse-music-sentiment-analysis")
 csv_path = os.path.join(path, "muse_dataset.csv")
 sentiment_df = pd.read_csv(csv_path)
 
-engine = create_engine('sqlite:///music_app.db')
+engine_chords = create_engine('sqlite:///chord.db')
+engine_sentiment = create_engine('sqlite:///sentiment.db')
 
 # print(sentiment_df.info())
 # print(sentiment_df.head())
 
-chrodonomicon_df.to_sql('chords', con=engine, if_exists='replace', index=False)
-sentiment_df.to_sql('sentiment', con=engine, if_exist='replace', index=False)
+chrodonomicon_df.to_sql('chords', con=engine_chords, if_exists='replace', index=False)
+sentiment_df.to_sql('sentiment', con=engine_sentiment, if_exists='replace', index=False)
