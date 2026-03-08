@@ -46,6 +46,9 @@ app.listen(PORT, () => {
     console.log(`✅ Rendering Handlebars at http://localhost:${PORT}`);
 });
 
+const dbChords = new sqlite3.Database('./chords.db');
+const dbSentiment = new sqlite3.Database('./sentiment.db');
+
 
 /* ****************************** */
 
