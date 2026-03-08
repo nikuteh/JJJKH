@@ -2,6 +2,10 @@
 
 # Run Instructions
 
+Prerequisite: 
+- Node LTS (24)
+- npm LTS (11)
+
 `git clone https://github.com/nikuteh/JJJKH.git`
 
 Run `npm install`
