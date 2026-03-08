@@ -51,7 +51,7 @@ function getRandomSongFromDB(callback) {
         END AS 'sentiment'
     FROM chords c
     JOIN sentiment s ON c.spotify_song_id = s.spotify_id
-    WHERE c.chords IS NOT NULL
+    WHERE c.chords IS NOT NULL AND c.chords LIKE '%<%>%'
     ORDER BY RANDOM()
     LIMIT 1
   `;
@@ -92,20 +92,13 @@ app.get('/api/get-lesson', (req, res) => {
     const sectionRegex = /<([^>]+)>\s*([^<]+)/g;
     const sections = {};
     let match;
+    let totalChordsProcessed = 0;
 
-    if (!row.chords.includes('<')) {
-      const chordList = row.chords.trim().split(/\s+/);
-      sections['main'] = {
-          label: "SONG",
-          emoji: "🎵",
-          sentiment: row.sentiment || "Neutral",
-          correctOrder: chordList,
-          bank: [...chordList].sort(() => Math.random() - 0.5)
-      };
-    } else {
       while ((match = sectionRegex.exec(row.chords)) !== null) {
         const label = match[1]; // e.g., "verse_1"
         const chordList = match[2].trim().split(/\s+/);
+
+        const startTime = totalChordsProcessed * 3;
         
         // generate the bank (Unique chords, distractor items)
         const bank = [...chordList];
@@ -120,16 +113,25 @@ app.get('/api/get-lesson', (req, res) => {
             emoji: label.includes('verse') ? "🎵" : "🎶",
             sentiment: row.sentiment || "Neutral",
             correctOrder: chordList,
-            bank: bank
+            bank: bank,
+            startTime: startTime
         };
+
+        totalChordsProcessed += chordList.length;
       }
-    }
+
+    const keys = Object.keys(sections);
+    const randomKey = keys[Math.floor(Math.random() * keys.length)];
+
+    const randomSection = {
+      [randomKey]: sections[randomKey] 
+    };
 
     res.json({
         title: row.title,
         artist: row.artist,
         spotifyId: row.spotifyId,
-        sections: sections
+        sections: randomSection
     });
 });
 

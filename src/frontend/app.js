@@ -30,6 +30,14 @@ function openLesson(song) {
   const sectionKeys = Object.keys(song.sections);
   state.currentTab  = sectionKeys[0];
 
+  const startTime = song.sections[state.currentTab].startTime || 0;
+
+  const player = document.getElementById("spotify-player");
+  if (player && song.spotifyId) {
+    // Construct the URL with the Spotify ID and the time skip parameter
+    player.src = `https://open.spotify.com/embed/track/${song.spotifyId}?utm_source=generator&t=${startTime}`;
+  }
+
   // Build per-section lesson state (zone, bank, status)
   state.lessonStates = {};
   sectionKeys.forEach(k => {
